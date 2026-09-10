@@ -77,6 +77,16 @@ export default function Home() {
     setAddStudentOpen(false);
   };
 
+  const deleteStudent = (studentToDelete: string) => {
+    setStudents((current) => current.filter((student) => student !== studentToDelete));
+    setAttendance((current) => {
+      const next = { ...current };
+      delete next[studentToDelete];
+      return next;
+    });
+    setSelectedStudent((current) => (current === studentToDelete ? null : current));
+  };
+
   const selectedStatus = selectedStudent ? attendance[selectedStudent] : undefined;
   const reportDescription =
     counts.markedPercentage === 0
@@ -230,9 +240,10 @@ export default function Home() {
         )}
 
         <section aria-label="Student attendance list" className="overflow-hidden rounded-2xl border border-[#e5e9ed] bg-white shadow-[0_12px_32px_rgba(29,39,51,0.05)]">
-          <div className="grid grid-cols-[1fr_auto] items-center border-b border-[#edf0f2] px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#8b96a1] sm:px-6">
+          <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 border-b border-[#edf0f2] px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#8b96a1] sm:px-6">
+            <span className="w-6 text-center">No.</span>
             <span>Student</span>
-            <span className="pr-1">Status</span>
+            <span className="pr-1">Actions</span>
           </div>
 
           <div>
@@ -244,11 +255,12 @@ export default function Home() {
 
               return (
                 <div
-                  className={`grid grid-cols-[1fr_auto] items-center gap-3 px-4 py-3.5 transition-colors sm:px-6 ${
+                  className={`grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-3.5 transition-colors sm:px-6 ${
                     index < students.length - 1 ? "border-b border-[#f0f2f4]" : ""
                   } ${isSelected ? "bg-[#fafbfc]" : ""}`}
                   key={student}
                 >
+                  <span className="w-6 text-center text-xs font-semibold tabular-nums text-[#a0aab4]">{index + 1}</span>
                   <button
                     aria-pressed={isSelected}
                     className={`min-w-0 truncate text-left text-sm font-medium underline-offset-4 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#526a9a]/30 ${
@@ -284,6 +296,14 @@ export default function Home() {
                       type="button"
                     >
                       Absent
+                    </button>
+                    <button
+                      aria-label={`Delete ${student}`}
+                      className="rounded-lg border border-[#f0dada] bg-white px-2.5 py-2 text-xs font-semibold text-[#c94848] transition-all duration-150 hover:border-[#c94848] hover:bg-[#fff8f8] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c94848]/40"
+                      onClick={() => deleteStudent(student)}
+                      type="button"
+                    >
+                      Delete
                     </button>
                   </div>
                 </div>
