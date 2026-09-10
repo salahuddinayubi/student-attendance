@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 
-const students = [
+const initialStudents = [
   "Safwan",
   "Abid",
   "Mayur",
@@ -27,9 +27,13 @@ type AttendanceStatus = "present" | "absent";
 type Attendance = Record<string, AttendanceStatus | undefined>;
 
 export default function Home() {
+  const [students, setStudents] = useState<string[]>([...initialStudents]);
   const [attendance, setAttendance] = useState<Attendance>({});
   const [reportOpen, setReportOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [addStudentOpen, setAddStudentOpen] = useState(false);
+  const [newStudentName, setNewStudentName] = useState("");
+  const [addStudentError, setAddStudentError] = useState("");
 
   const counts = useMemo(() => {
     const statuses = Object.values(attendance);
@@ -56,6 +60,23 @@ export default function Home() {
     setReportOpen(false);
   };
 
+  const addStudent = () => {
+    const name = newStudentName.trim();
+    if (!name) {
+      setAddStudentError("Enter a student name.");
+      return;
+    }
+    if (students.some((student) => student.toLowerCase() === name.toLowerCase())) {
+      setAddStudentError("That student is already on the list.");
+      return;
+    }
+
+    setStudents((current) => [...current, name]);
+    setNewStudentName("");
+    setAddStudentError("");
+    setAddStudentOpen(false);
+  };
+
   const selectedStatus = selectedStudent ? attendance[selectedStudent] : undefined;
   const reportDescription =
     counts.markedPercentage === 0
@@ -77,7 +98,22 @@ export default function Home() {
               Mark each student as present or absent.
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <button
+              aria-expanded={addStudentOpen}
+              className={`rounded-lg border px-3.5 py-2 text-xs font-semibold transition-all duration-150 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#18815a]/30 ${
+                addStudentOpen
+                  ? "border-[#18815a] bg-[#18815a] text-white"
+                  : "border-[#18815a] bg-white text-[#18815a] hover:bg-[#f5fbf8]"
+              }`}
+              onClick={() => {
+                setAddStudentOpen((open) => !open);
+                setAddStudentError("");
+              }}
+              type="button"
+            >
+              {addStudentOpen ? "Close" : "New student"}
+            </button>
             <button
               className="rounded-lg border border-[#dce3e8] bg-white px-3.5 py-2 text-xs font-semibold text-[#66727e] transition-all duration-150 hover:border-[#aebbc5] hover:bg-[#f9fafb] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#66727e]/30"
               onClick={resetAttendance}
@@ -99,6 +135,40 @@ export default function Home() {
             </button>
           </div>
         </header>
+
+        {addStudentOpen && (
+          <form
+            aria-label="Add a new student"
+            className="mb-6 flex flex-col gap-2 rounded-2xl border border-[#dfe9e3] bg-white p-4 shadow-[0_8px_24px_rgba(29,39,51,0.04)] sm:flex-row sm:items-start"
+            onSubmit={(event) => {
+              event.preventDefault();
+              addStudent();
+            }}
+          >
+            <div className="min-w-0 flex-1">
+              <label className="sr-only" htmlFor="new-student-name">Student name</label>
+              <input
+                autoFocus
+                className="w-full rounded-lg border border-[#dce3e8] bg-white px-3.5 py-2.5 text-sm text-[#303c48] outline-none placeholder:text-[#a0aab4] focus:border-[#18815a] focus:ring-2 focus:ring-[#18815a]/15"
+                id="new-student-name"
+                onChange={(event) => {
+                  setNewStudentName(event.target.value);
+                  setAddStudentError("");
+                }}
+                placeholder="Enter student name"
+                type="text"
+                value={newStudentName}
+              />
+              {addStudentError && <p className="mt-1.5 text-xs text-[#c94848]">{addStudentError}</p>}
+            </div>
+            <button
+              className="rounded-lg bg-[#18815a] px-4 py-2.5 text-xs font-semibold text-white transition-all duration-150 hover:bg-[#126b4a] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#18815a]/40"
+              type="submit"
+            >
+              Add student
+            </button>
+          </form>
+        )}
 
         <section aria-label="Attendance summary" className="mb-6 grid grid-cols-3 gap-3 sm:gap-4">
           <div className="rounded-2xl border border-[#e5e9ed] bg-white px-4 py-4 shadow-[0_8px_24px_rgba(29,39,51,0.04)] sm:px-5">
